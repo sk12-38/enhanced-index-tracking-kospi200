@@ -39,7 +39,7 @@ class MainBlock(nn.Module):
         self.n_stocks = n_stocks
         self.mlp = nn.Sequential(
             nn.Linear(1, hidden_dim),
-            nn.Tanh(),
+            nn.ReLu(),
             nn.Linear(hidden_dim, 1),
         )
         self.theta_bull = nn.Parameter(torch.zeros(n_stocks + 1))
