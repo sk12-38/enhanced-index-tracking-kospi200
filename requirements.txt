@@ -1,0 +1,9 @@
+torch==2.5.1
+pandas>=2.0
+numpy>=1.26
+hmmlearn>=0.3
+scipy>=1.11
+matplotlib>=3.7
+seaborn>=0.13
+tqdm>=4.65
+scikit-learn>=1.3
