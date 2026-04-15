@@ -147,3 +147,5 @@ Consider excluding:
 ## Notes
 
 This project is research code. It is intended for empirical backtesting and reproducibility study, not for production trading or investment advice. Performance results depend on data availability, universe construction, transaction cost assumptions, and notebook configuration.
+
+This work is also being developed into a research paper in collaboration with a master's student and a professor.
