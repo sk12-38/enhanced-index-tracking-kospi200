@@ -1,82 +1,44 @@
 # Deep Learning for Enhanced Index Tracking on KOSPI200
 
-This project reproduces and extends the deep learning enhanced index tracking framework of Dai and Li (2024) on Korean equity market data. The main experiment tracks the KOSPI200 index using a small stock universe and compares index tracking, enhanced index tracking, CVaR-constrained enhanced index tracking, and a re-optimization baseline.
+## 한국어
 
-## Project Summary
+이 저장소는 Dai and Li (2024)의 deep learning enhanced index tracking framework를 한국 주식시장 데이터에 적용해 재현하고 확장한 연구 프로젝트입니다. KOSPI200 지수를 소규모 주식 universe로 추적하면서 index tracking, enhanced index tracking, CVaR 제약 enhanced index tracking, rolling re-optimization baseline을 비교합니다.
 
-The research pipeline is implemented around `Index_tracking_v3.ipynb` and the supporting Python modules in this directory. The notebook runs the full workflow:
+### 프로젝트 요약
 
-1. Load KOSPI200 adjusted close, index, and market capitalization data.
-2. Build a tradable stock universe based on market capitalization and data availability.
-3. Estimate bull and bear market regimes with two-state Gaussian HMM models.
-4. Construct short-term stock and index features, including regime probability, rolling mean return, volatility, beta, and current portfolio weights.
-5. Train neural network policy variants for IT, EIT, and EIT-CVaR objectives.
-6. Compare neural network policies against a rolling re-optimization baseline.
-7. Evaluate tracking error, excess return, information ratio, CVaR, Sharpe ratio, maximum drawdown, average transaction cost, and final wealth.
-8. Export summary tables and selected figures.
+주요 실험은 `Index_tracking_v3.ipynb`와 보조 Python module을 중심으로 구성됩니다.
 
-## Strategies
+1. KOSPI200 수정주가, 지수, 시가총액 데이터를 불러옵니다.
+2. 시가총액과 데이터 가용성을 기준으로 투자 가능한 종목 universe를 구성합니다.
+3. 2상태 Gaussian HMM으로 bull/bear 시장 국면을 추정합니다.
+4. 국면 확률, rolling 평균 수익률, 변동성, beta, 현재 포트폴리오 비중 등 단기 feature를 생성합니다.
+5. IT, EIT, EIT-CVaR 목적함수에 대한 neural network policy를 학습합니다.
+6. 학습된 policy와 rolling re-optimization baseline을 비교합니다.
+7. tracking error, excess return, information ratio, CVaR, Sharpe ratio, maximum drawdown, 거래비용, final wealth를 평가합니다.
 
-| Strategy | Description |
-|---|---|
-| IT | Standard index tracking objective that minimizes tracking error against the benchmark index. |
-| EIT | Enhanced index tracking objective that balances tracking error and excess return. |
-| EIT-CVaR | Enhanced index tracking with a CVaR penalty to control downside tail risk. |
-| RO | Re-optimization baseline that solves a rolling optimization problem instead of learning a policy network. |
+### 전략
 
-## Policy Variants
+| 전략 | 설명 |
+| --- | --- |
+| IT | benchmark index와의 tracking error를 최소화하는 표준 index tracking 목적함수 |
+| EIT | tracking error와 excess return을 함께 고려하는 enhanced index tracking 목적함수 |
+| EIT-CVaR | downside tail risk를 제어하기 위해 CVaR penalty를 포함한 enhanced index tracking |
+| RO | policy network 대신 rolling optimization 문제를 푸는 re-optimization baseline |
 
-The neural policy network is tested with four architectural variants:
+### 주요 파일
 
-| Variant | Description |
-|---|---|
-| NN-ST | Short-term feature block only. |
-| NN-IR | Index regime feature block. |
-| NN-ISR | Index and stock regime feature blocks. |
-| NN-All | Full model using regime, score, and memory-style information. |
+- `Index_tracking_v3.ipynb`: 메인 연구 노트북 및 실험 driver
+- `config.py`: 데이터 경로, 학습 기간, 비용 수준, hyperparameter, policy variant 설정
+- `data_loader.py`: KOSPI200 데이터 로딩, 날짜 정렬, 수익률 계산, universe 구성
+- `hmm_model.py`: 2상태 Gaussian HMM 국면 추정
+- `features.py`: rolling return, volatility, beta, regime, portfolio-state feature 생성
+- `policy_network.py`: neural network policy architecture 정의
+- `loss.py`: IT, EIT, EIT-CVaR objective 정의
+- `trainer.py`: bootstrap path 생성, policy 학습, portfolio simulation
+- `backtester.py`: rolling backtest와 re-optimization baseline 구현
+- `evaluation.py`: 성과 지표와 diagnostic plot 계산
 
-## Main Files
-
-| Path | Role |
-|---|---|
-| `Index_tracking_v3.ipynb` | Main research notebook and experiment driver. |
-| `config.py` | Central experiment configuration: data paths, training years, cost levels, model hyperparameters, and policy variants. |
-| `data_loader.py` | Loads KOSPI200 data, aligns dates, computes returns, and builds the stock universe. |
-| `hmm_model.py` | Implements two-state Gaussian HMM regime estimation and smoothed bull probability extraction. |
-| `features.py` | Builds rolling return, volatility, beta, regime, and portfolio-state features. |
-| `policy_network.py` | Defines the neural network policy architecture and variant flags. |
-| `loss.py` | Defines IT, EIT, and EIT-CVaR objective functions. |
-| `trainer.py` | Handles bootstrap path generation, policy training, portfolio simulation, and seed control. |
-| `backtester.py` | Implements the rolling backtest and re-optimization baseline. |
-| `ro_optimizer.py` | Implements the re-optimization weight solver. |
-| `simulator.py` | Provides NumPy and PyTorch portfolio transition functions. |
-| `evaluation.py` | Computes performance metrics and diagnostic plots. |
-| `make_figures.py` | Runs policy comparisons and saves summary figures/tables. |
-| `parity_check.py` | Checks consistency between NumPy and PyTorch portfolio simulation steps. |
-
-## Data Requirements
-
-The experiment expects the following CSV files:
-
-| File | Description |
-|---|---|
-| `KOSPI200_adj_close.csv` | Adjusted close prices for the stock universe. |
-| `KOSPI200_index.csv` | KOSPI200 benchmark index level. |
-| `KOSPI200_mkt_cap.csv` | Market capitalization data for universe selection. |
-
-Each file should use dates as the index. Stock-level files should have ticker columns, while the index file should contain the benchmark index series.
-
-If this repository is published without raw data, place these files in the project root or update the paths in `config.py`:
-
-```python
-PRICE_PATH = "KOSPI200_adj_close.csv"
-INDEX_PATH = "KOSPI200_index.csv"
-MCAP_PATH = "KOSPI200_mkt_cap.csv"
-```
-
-## Setup
-
-Create a virtual environment and install the required packages:
+### 실행 방법
 
 ```powershell
 python -m venv .venv
@@ -84,68 +46,60 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-If `requirements.txt` is not included, install the core dependencies manually:
+필요한 KOSPI200 CSV 파일을 프로젝트 루트에 두거나 `config.py`의 경로를 수정한 뒤, `Index_tracking_v3.ipynb`를 처음부터 실행합니다.
+
+### 참고
+
+이 프로젝트는 empirical backtesting과 재현 연구를 위한 research code입니다. 실제 투자 조언이나 production trading 용도가 아닙니다.
+
+## English
+
+This repository reproduces and extends the deep learning enhanced index tracking framework of Dai and Li (2024) on Korean equity market data. The main experiment tracks the KOSPI200 index using a small stock universe and compares index tracking, enhanced index tracking, CVaR-constrained enhanced index tracking, and a rolling re-optimization baseline.
+
+### Project Summary
+
+The main workflow is implemented around `Index_tracking_v3.ipynb` and supporting Python modules.
+
+1. Load KOSPI200 adjusted close, index, and market capitalization data.
+2. Build a tradable stock universe based on market capitalization and data availability.
+3. Estimate bull and bear market regimes with two-state Gaussian HMM models.
+4. Construct short-term stock and index features, including regime probability, rolling mean return, volatility, beta, and current portfolio weights.
+5. Train neural network policy variants for IT, EIT, and EIT-CVaR objectives.
+6. Compare neural network policies against a rolling re-optimization baseline.
+7. Evaluate tracking error, excess return, information ratio, CVaR, Sharpe ratio, maximum drawdown, transaction cost, and final wealth.
+
+### Strategies
+
+| Strategy | Description |
+| --- | --- |
+| IT | Standard index tracking objective that minimizes tracking error against the benchmark index |
+| EIT | Enhanced index tracking objective that balances tracking error and excess return |
+| EIT-CVaR | Enhanced index tracking with a CVaR penalty to control downside tail risk |
+| RO | Re-optimization baseline that solves a rolling optimization problem instead of learning a policy network |
+
+### Main Files
+
+- `Index_tracking_v3.ipynb`: Main research notebook and experiment driver
+- `config.py`: Data paths, training years, cost levels, hyperparameters, and policy variants
+- `data_loader.py`: Data loading, date alignment, return calculation, and universe construction
+- `hmm_model.py`: Two-state Gaussian HMM regime estimation
+- `features.py`: Rolling return, volatility, beta, regime, and portfolio-state feature construction
+- `policy_network.py`: Neural network policy architecture
+- `loss.py`: IT, EIT, and EIT-CVaR objectives
+- `trainer.py`: Bootstrap path generation, policy training, and portfolio simulation
+- `backtester.py`: Rolling backtest and re-optimization baseline
+- `evaluation.py`: Performance metrics and diagnostic plots
+
+### How to Run
 
 ```powershell
-pip install torch pandas numpy scipy matplotlib seaborn tqdm scikit-learn hmmlearn
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-## How to Run
+Place the required KOSPI200 CSV files in the project root or update the paths in `config.py`, then run `Index_tracking_v3.ipynb` from top to bottom.
 
-1. Place the required KOSPI200 CSV files in the project directory, or update `config.py` with your data paths.
-2. Open `Index_tracking_v3.ipynb`.
-3. Run the notebook from top to bottom.
-4. For a quick smoke test, set `QUICK_TEST = True` in the notebook before the rolling backtest section.
-5. For the full experiment, use `QUICK_TEST = False`.
+### Notes
 
-The default full experiment uses:
-
-| Setting | Value |
-|---|---|
-| Training start year | 2000 |
-| Test period | 2017 to 2022 |
-| Universe size | Top 5 stocks by market capitalization in the reference setup |
-| Rebalancing frequency | 5 trading days |
-| Transaction cost levels | `rho = 0.0`, `rho = 0.005` |
-| Random seed | 42 |
-
-## Outputs
-
-The notebook and helper scripts can generate:
-
-| Output | Description |
-|---|---|
-| `recomputed_metrics.csv` | Recomputed performance metrics across objectives, policies, cost levels, and normalization settings. |
-| `kospi200_cvar_curve_daily.csv` | Daily CVaR calibration output. |
-| `kospi200_expanding_c_values.csv` | Expanding-window CVaR threshold values. |
-| `figures/section6_auto/` | Saved wealth curves, paper-style figures, daily return tables, and portfolio weight histories. |
-| `checkpoints/` | Model checkpoints for normalization-off runs. |
-| `checkpoints_norm/` | Model checkpoints for normalization-on runs. |
-
-Generated outputs and checkpoints can usually be excluded from Git because they are reproducible from the notebook.
-
-## Suggested GitHub Cleanup
-
-For a lightweight public repository, keep:
-
-- `Index_tracking_v3.ipynb`
-- Python modules: `*.py`
-- `README.md`
-- `requirements.txt`
-- A small number of representative figures or summary CSVs, if desired
-
-Consider excluding:
-
-- Raw market data if redistribution is restricted
-- `__pycache__/`
-- `*.pyc`
-- `checkpoints/`
-- `checkpoints_norm/`
-- Rendered notebook exports such as `*.html` and `*.pdf`
-- Large generated weight-history CSVs under `figures/`
-
-## Notes
-
-This project is research code. It is intended for empirical backtesting and reproducibility study, not for production trading or investment advice. Performance results depend on data availability, universe construction, transaction cost assumptions, and notebook configuration.
-
-This work is also being developed into a research paper in collaboration with a master's student and a professor.
+This project is research code for empirical backtesting and reproducibility study. It is not intended for production trading or investment advice.
