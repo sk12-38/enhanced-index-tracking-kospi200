@@ -48,10 +48,6 @@ pip install -r requirements.txt
 
 필요한 KOSPI200 CSV 파일을 프로젝트 루트에 두거나 `config.py`의 경로를 수정한 뒤, `Index_tracking_v3.ipynb`를 처음부터 실행합니다.
 
-### 참고
-
-이 프로젝트는 empirical backtesting과 재현 연구를 위한 research code입니다. 실제 투자 조언이나 production trading 용도가 아닙니다.
-
 ## English
 
 This repository reproduces and extends the deep learning enhanced index tracking framework of Dai and Li (2024) on Korean equity market data. The main experiment tracks the KOSPI200 index using a small stock universe and compares index tracking, enhanced index tracking, CVaR-constrained enhanced index tracking, and a rolling re-optimization baseline.
